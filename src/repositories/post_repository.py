@@ -7,10 +7,10 @@ def create_post(
     title: str,
     content: str,
     category: str,
-    tags: List[str],
+    tags: str,
 ) -> Dict[str, Any]:
 
-    tags_str = ",".join(tags)
+    tags_clean = ",".join(tag.strip() for tag in tags.split(",") if tag.strip())
 
     query = """
         INSERT INTO posts (title, content, category, tags)
@@ -19,13 +19,16 @@ def create_post(
 
     db.execute(
         query,
-        (title, content, category, tags_str),
+        (title, content, category, tags_clean),
         commit=True,
     )
 
     result = db.execute("SELECT * FROM posts WHERE id = LAST_INSERT_ID();")
 
-    return result[0]
+    post=result[0]
+    post["tags"] = post["tags"].split(",") if post["tags"] else []
+
+    return post
 
 
 def get_all_posts(db: DBConnection):
@@ -35,7 +38,7 @@ def get_all_posts(db: DBConnection):
         WHERE is_deleted = FALSE
         ORDER BY created_at DESC;
     """
-    return db.execute(query)
+    # return db.execute(query)
     posts = db.execute(query)
 
     for post in posts:

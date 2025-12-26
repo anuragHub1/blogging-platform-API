@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status,HTTPException
 
-from src.repositories.post_repository import get_all_posts, create_post, update_post, soft_delete_post
+from src.repositories.post_repository import get_all_posts, create_post, update_post, soft_delete_post, get_post_by_id
 from src.utils.DBConnect import get_db
 from src.schemas.common import CreatePost,UpdatePost
 from src.utils.MySQLWrapper import DBConnection
@@ -13,6 +13,15 @@ router=APIRouter(
 @router.get("/")
 def read_post(db:DBConnection=Depends(get_db)):
     return get_all_posts(db)
+
+@router.get("/{id}")
+def get_post(id:int,db:DBConnection=Depends(get_db)):
+    post=get_post_by_id(db,id)
+    
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'Post {id} not found')
+    
+    return post
 
 @router.post("/",status_code=status.HTTP_201_CREATED)
 def post_create(post:CreatePost,db:DBConnection=Depends(get_db)):

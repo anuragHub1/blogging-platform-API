@@ -58,6 +58,10 @@ def get_post_by_id(db: DBConnection, post_id: int):
         WHERE id = %s AND is_deleted = FALSE;
     """
     result = db.execute(query, (post_id,))
+    
+    if not result:
+        return None
+    
     post=result[0] 
 
     if post.get("tags"):

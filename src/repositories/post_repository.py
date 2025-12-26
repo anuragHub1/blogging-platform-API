@@ -1,3 +1,4 @@
+import types
 from typing import List, Dict, Any
 from src.utils.MySQLWrapper import DBConnection
 
@@ -57,7 +58,14 @@ def get_post_by_id(db: DBConnection, post_id: int):
         WHERE id = %s AND is_deleted = FALSE;
     """
     result = db.execute(query, (post_id,))
-    return result[0] if result else None
+    post=result[0] 
+
+    if post.get("tags"):
+        post["tags"] = post["tags"].split(",")
+    else:
+        post["tags"] = []
+
+    return post
 
 
 def update_post(
@@ -66,9 +74,9 @@ def update_post(
     title: str,
     content: str,
     category: str,
-    tags: List[str],
+    tags: str,
 ):
-    tags_str = ",".join(tags)
+    tags_str = ",".join(tag.strip() for tag in tags.split(",") if tag.strip())
 
     query = """
         UPDATE posts

@@ -93,11 +93,19 @@ def update_post(
     return get_post_by_id(db, post_id)
 
 
-def soft_delete_post(db: DBConnection, post_id: int):
+def soft_delete_post(db: DBConnection, post_id: int) -> bool:
     query = """
         UPDATE posts
-        SET is_deleted = TRUE
-        WHERE id = %s;
+        SET is_deleted = 1,
+            deleted_at = NOW()
+        WHERE id = %s AND is_deleted = 0;
     """
+
     db.execute(query, (post_id,), commit=True)
-    return True
+
+    result = db.execute(
+        "SELECT id FROM posts WHERE id = %s AND is_deleted = 1;",
+        (post_id,),
+    )
+
+    return bool(result)

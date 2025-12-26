@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status,HTTPException
 
-from src.repositories.post_repository import get_all_posts, create_post,update_post
+from src.repositories.post_repository import get_all_posts, create_post, update_post, soft_delete_post
 from src.utils.DBConnect import get_db
 from src.schemas.common import CreatePost,UpdatePost
 from src.utils.MySQLWrapper import DBConnection
@@ -39,3 +39,12 @@ def post_update(id:int,post:UpdatePost,db:DBConnection=Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,detail=str(e)
         )
+
+@router.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(id:int, db:DBConnection=Depends(get_db)):
+    
+    deleted=soft_delete_post(db,id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'Post {id} not found or already deleted')

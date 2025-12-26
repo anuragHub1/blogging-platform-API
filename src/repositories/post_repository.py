@@ -36,6 +36,15 @@ def get_all_posts(db: DBConnection):
         ORDER BY created_at DESC;
     """
     return db.execute(query)
+    posts = db.execute(query)
+
+    for post in posts:
+        if post.get("tags"):
+            post["tags"] = post["tags"].split(",")
+        else:
+            post["tags"] = []
+
+    return posts
 
 
 def get_post_by_id(db: DBConnection, post_id: int):
@@ -81,4 +90,3 @@ def soft_delete_post(db: DBConnection, post_id: int):
     """
     db.execute(query, (post_id,), commit=True)
     return True
-

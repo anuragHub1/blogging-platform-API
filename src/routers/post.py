@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, status,HTTPException, Query
-from typing import Optional
+from typing import List, Optional
 
 from src.repositories.post_repository import get_all_posts, create_post, update_post, soft_delete_post, get_post_by_id
 from src.utils.DBConnect import get_db
-from src.schemas.common import CreatePost,UpdatePost
+from src.schemas.common import CreatePost, UpdatePost, PostResponse
 from src.utils.MySQLWrapper import DBConnection
 
 router=APIRouter(
@@ -12,7 +12,7 @@ router=APIRouter(
 )
 
 
-@router.get("/")
+@router.get("/",response_model=List[PostResponse])
 def read_post(
     term: Optional[str] = Query(None, description="Search term"),
     db=Depends(get_db),
@@ -20,7 +20,7 @@ def read_post(
     return get_all_posts(db, term)
 
 
-@router.get("/{id}")
+@router.get("/{id}",response_model=PostResponse)
 def get_post(id:int,db:DBConnection=Depends(get_db)):
     post=get_post_by_id(db,id)
 
@@ -29,7 +29,7 @@ def get_post(id:int,db:DBConnection=Depends(get_db)):
 
     return post
 
-@router.post("/",status_code=status.HTTP_201_CREATED)
+@router.post("/",status_code=status.HTTP_201_CREATED,response_model=PostResponse)
 def post_create(post:CreatePost,db:DBConnection=Depends(get_db)):
     return create_post(
         db,
@@ -39,7 +39,7 @@ def post_create(post:CreatePost,db:DBConnection=Depends(get_db)):
         tags=post.tags,
     )
 
-@router.put("/{id}")
+@router.put("/{id}",response_model=PostResponse)
 def post_update(id:int,post:UpdatePost,db:DBConnection=Depends(get_db)):
     try:
         return update_post(

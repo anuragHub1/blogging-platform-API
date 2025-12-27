@@ -1,5 +1,5 @@
 import types
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from src.utils.MySQLWrapper import DBConnection
 
 
@@ -32,15 +32,28 @@ def create_post(
     return post
 
 
-def get_all_posts(db: DBConnection):
+def get_all_posts(db: DBConnection,term: Optional[str]=None):
     query = """
         SELECT *
         FROM posts
         WHERE is_deleted = FALSE
-        ORDER BY created_at DESC;
     """
-    # return db.execute(query)
-    posts = db.execute(query)
+    params=[]
+
+    if term:
+        query += """
+        AND (
+                title LIKE %s
+                OR content LIKE %s
+                OR category LIKE %s
+            )
+        """
+        wildcard = f"%{term}%"
+        params.extend([wildcard, wildcard, wildcard])
+
+    query += " ORDER BY created_at DESC;"
+
+    posts = db.execute(query,tuple(params))
 
     for post in posts:
         if post.get("tags"):
